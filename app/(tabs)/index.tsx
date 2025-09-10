@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Platform } from 'react-native';
-import Camera, { CameraType } from 'expo-camera';
+import { Camera, CameraType } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import { Play, Square, RotateCcw, Minus, Plus, Timer, SkipBack } from 'lucide-react-native';
 import TeleprompterOverlay from '@/components/TeleprompterOverlay';
