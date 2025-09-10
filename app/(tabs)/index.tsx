@@ -10,7 +10,9 @@ import { useScript } from '@/context/ScriptContext';
 export default function RecordingScreen() {
   const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
   const [microphonePermission, setMicrophonePermission] = useState<boolean | null>(null);
-  const [mediaLibraryPermission, requestMediaLibraryPermission] = MediaLibrary.usePermissions();
+  const [mediaLibraryPermission, requestMediaLibraryPermission] = Platform.OS !== 'web' 
+    ? MediaLibrary.usePermissions() 
+    : [null, () => {}];
   const [facing, setFacing] = useState<CameraType>('front');
   const [isRecording, setIsRecording] = useState(false);
   const [scrollSpeed, setScrollSpeed] = useState(50); // pixels per second
@@ -25,12 +27,19 @@ export default function RecordingScreen() {
 
   useEffect(() => {
     requestPermissions();
-    if (!mediaLibraryPermission) {
+    if (Platform.OS !== 'web' && !mediaLibraryPermission) {
       requestMediaLibraryPermission();
     }
   }, []);
 
   const requestPermissions = async () => {
+    // On web, camera permissions are handled by the browser
+    if (Platform.OS === 'web') {
+      setCameraPermission(true);
+      setMicrophonePermission(true);
+      return;
+    }
+
     try {
       const cameraStatus = await Camera.requestCameraPermissionsAsync();
       const microphoneStatus = await Camera.requestMicrophonePermissionsAsync();
