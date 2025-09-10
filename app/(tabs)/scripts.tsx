@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Plus, CreditCard as Edit3, Trash2, Play, Search } from 'lucide-react-native';
 import { router } from 'expo-router';
-import { useScript } from '@/hooks/useScript';
+import { useScript } from '@/context/ScriptContext';
 import ScriptEditor from '@/components/ScriptEditor';
 
 interface Script {

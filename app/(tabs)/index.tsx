@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Play, Square, RotateCcw, Minus, Plus, Timer, SkipBack } from 'lucide-react-native';
 import TeleprompterOverlay from '@/components/TeleprompterOverlay';
 import CountdownTimer from '@/components/CountdownTimer';
-import { useScript } from '@/hooks/useScript';
+import { useScript } from '@/context/ScriptContext';
 
 export default function RecordingScreen() {
   const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
