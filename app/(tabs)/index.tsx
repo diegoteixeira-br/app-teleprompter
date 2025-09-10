@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
-import { Camera, CameraType } from 'expo-camera';
+import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Play, Square, RotateCcw, Minus, Plus, Timer, SkipBack } from 'lucide-react-native';
@@ -10,8 +10,8 @@ import CountdownTimer from '@/components/CountdownTimer';
 import { useScript } from '@/hooks/useScript';
 
 export default function RecordingScreen() {
-  const [cameraPermission, setCameraPermission] = useState(false);
-  const [microphonePermission, setMicrophonePermission] = useState(false);
+  const { scriptId } = useLocalSearchParams();
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [mediaLibraryPermission, requestMediaLibraryPermission] = MediaLibrary.usePermissions();
   const [facing, setFacing] = useState<CameraType>('front');
   const [isRecording, setIsRecording] = useState(false);
@@ -20,20 +20,15 @@ export default function RecordingScreen() {
   const [countdownTime, setCountdownTime] = useState(3);
   const [showCountdown, setShowCountdown] = useState(false);
   const [isRolling, setIsRolling] = useState(false);
-  const cameraRef = useRef<Camera>(null);
+  const cameraRef = useRef<CameraView>(null);
   const teleprompterRef = useRef<any>(null);
   
   const { currentScript } = useScript();
 
   useEffect(() => {
-    (async () => {
-      const { status: cameraStatus } = await Camera.requestCameraPermissionsAsync();
-      const { status: audioStatus } = await Camera.requestMicrophonePermissionsAsync();
-      
-      setCameraPermission(cameraStatus === 'granted');
-      setMicrophonePermission(audioStatus === 'granted');
-    })();
-    
+    if (!cameraPermission) {
+      requestCameraPermission();
+    }
     if (!mediaLibraryPermission) {
       requestMediaLibraryPermission();
     }
@@ -104,21 +99,15 @@ export default function RecordingScreen() {
     setIsRolling(false);
   };
 
-  if (!cameraPermission || !microphonePermission) {
+  if (!cameraPermission) {
     return <View style={styles.loadingContainer}><Text>Carregando...</Text></View>;
   }
 
-  if (!cameraPermission || !microphonePermission) {
+  if (!cameraPermission.granted) {
     return (
       <SafeAreaView style={styles.permissionContainer}>
-        <Text style={styles.permissionText}>Precisamos de permissão para usar a câmera e microfone</Text>
-        <TouchableOpacity style={styles.permissionButton} onPress={() => {
-          Alert.alert(
-            'Permissões Necessárias',
-            'Por favor, vá às configurações do aplicativo e conceda as permissões de câmera e microfone.',
-            [{ text: 'OK' }]
-          );
-        }}>
+        <Text style={styles.permissionText}>Precisamos de permissão para usar a câmera</Text>
+        <TouchableOpacity style={styles.permissionButton} onPress={requestCameraPermission}>
           <Text style={styles.permissionButtonText}>Conceder Permissão</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -128,9 +117,9 @@ export default function RecordingScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.cameraContainer}>
-        <Camera 
+        <CameraView 
           style={styles.camera} 
-          type={facing}
+          facing={facing}
           ref={cameraRef}
         >
           {currentScript && (
@@ -149,7 +138,7 @@ export default function RecordingScreen() {
               onComplete={onCountdownComplete}
             />
           )}
-        </Camera>
+        </CameraView>
 
         {/* Controls Overlay */}
         <View style={styles.controlsOverlay}>
