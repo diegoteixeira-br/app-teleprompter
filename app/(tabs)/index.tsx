@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Platform } from 'react-native';
 import { Camera, CameraType } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -130,122 +130,142 @@ export default function RecordingScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.cameraContainer}>
-        <Camera 
-          style={styles.camera} 
-          type={facing}
-          ref={cameraRef}
-        >
-          {currentScript && (
-            <TeleprompterOverlay
-              ref={teleprompterRef}
-              script={currentScript}
-              fontSize={fontSize}
-              scrollSpeed={scrollSpeed}
-              isRolling={isRolling}
-            />
-          )}
-          
-          {showCountdown && (
-            <CountdownTimer
-              initialTime={countdownTime}
-              onComplete={onCountdownComplete}
-            />
-          )}
-        </Camera>
+      {Platform.OS === 'ios' || Platform.OS === 'android' ? (
+        <View style={styles.cameraContainer}>
+          <Camera 
+            style={styles.camera} 
+            type={facing}
+            ref={cameraRef}
+          >
+            {currentScript && (
+              <TeleprompterOverlay
+                ref={teleprompterRef}
+                script={currentScript}
+                fontSize={fontSize}
+                scrollSpeed={scrollSpeed}
+                isRolling={isRolling}
+              />
+            )}
+            
+            {showCountdown && (
+              <CountdownTimer
+                initialTime={countdownTime}
+                onComplete={onCountdownComplete}
+              />
+            )}
+          </Camera>
 
-        {/* Controls Overlay */}
-        <View style={styles.controlsOverlay}>
-          {/* Top Controls */}
-          <View style={styles.topControls}>
-            <TouchableOpacity style={styles.controlButton} onPress={resetTeleprompter}>
-              <SkipBack size={20} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.controlButton} onPress={toggleCameraFacing}>
-              <RotateCcw size={20} color="#fff" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Bottom Controls */}
-          <View style={styles.bottomControls}>
-            {/* Controls Row */}
-            <View style={styles.controlsRow}>
-              {/* Speed Control */}
-              <View style={styles.controlGroup}>
-                <Text style={styles.controlLabel}>Velocidade</Text>
-                <View style={styles.controlRow}>
-                  <TouchableOpacity 
-                    style={styles.smallButton} 
-                    onPress={() => adjustSpeed(-10)}
-                  >
-                    <Minus size={14} color="#fff" />
-                  </TouchableOpacity>
-                  <Text style={styles.controlValue}>{scrollSpeed}</Text>
-                  <TouchableOpacity 
-                    style={styles.smallButton} 
-                    onPress={() => adjustSpeed(10)}
-                  >
-                    <Plus size={14} color="#fff" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Font Size Control */}
-              <View style={styles.controlGroup}>
-                <Text style={styles.controlLabel}>Fonte</Text>
-                <View style={styles.controlRow}>
-                  <TouchableOpacity 
-                    style={styles.smallButton} 
-                    onPress={() => adjustFontSize(-2)}
-                  >
-                    <Minus size={14} color="#fff" />
-                  </TouchableOpacity>
-                  <Text style={styles.controlValue}>{fontSize}</Text>
-                  <TouchableOpacity 
-                    style={styles.smallButton} 
-                    onPress={() => adjustFontSize(2)}
-                  >
-                    <Plus size={14} color="#fff" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Countdown Control */}
-              <View style={styles.controlGroup}>
-                <Text style={styles.controlLabel}>Timer</Text>
-                <View style={styles.controlRow}>
-                  <TouchableOpacity 
-                    style={styles.smallButton} 
-                    onPress={() => adjustCountdown(-1)}
-                  >
-                    <Minus size={14} color="#fff" />
-                  </TouchableOpacity>
-                  <Text style={styles.controlValue}>{countdownTime}s</Text>
-                  <TouchableOpacity 
-                    style={styles.smallButton} 
-                    onPress={() => adjustCountdown(1)}
-                  >
-                    <Plus size={14} color="#fff" />
-                  </TouchableOpacity>
-                </View>
-              </View>
+          {/* Controls Overlay */}
+          <View style={styles.controlsOverlay}>
+            {/* Top Controls */}
+            <View style={styles.topControls}>
+              <TouchableOpacity style={styles.controlButton} onPress={resetTeleprompter}>
+                <SkipBack size={20} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.controlButton} onPress={toggleCameraFacing}>
+                <RotateCcw size={20} color="#fff" />
+              </TouchableOpacity>
             </View>
 
-            {/* Record Button */}
-            <TouchableOpacity
-              style={[styles.recordButton, isRecording && styles.recordingButton]}
-              onPress={isRecording ? stopRecording : startCountdown}
-              disabled={!currentScript}
-            >
-              {isRecording ? (
-                <Square size={28} color="#fff" />
-              ) : (
-                <Play size={28} color="#fff" />
-              )}
-            </TouchableOpacity>
+            {/* Bottom Controls */}
+            <View style={styles.bottomControls}>
+              {/* Controls Row */}
+              <View style={styles.controlsRow}>
+                {/* Speed Control */}
+                <View style={styles.controlGroup}>
+                  <Text style={styles.controlLabel}>Velocidade</Text>
+                  <View style={styles.controlRow}>
+                    <TouchableOpacity 
+                      style={styles.smallButton} 
+                      onPress={() => adjustSpeed(-10)}
+                    >
+                      <Minus size={14} color="#fff" />
+                    </TouchableOpacity>
+                    <Text style={styles.controlValue}>{scrollSpeed}</Text>
+                    <TouchableOpacity 
+                      style={styles.smallButton} 
+                      onPress={() => adjustSpeed(10)}
+                    >
+                      <Plus size={14} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Font Size Control */}
+                <View style={styles.controlGroup}>
+                  <Text style={styles.controlLabel}>Fonte</Text>
+                  <View style={styles.controlRow}>
+                    <TouchableOpacity 
+                      style={styles.smallButton} 
+                      onPress={() => adjustFontSize(-2)}
+                    >
+                      <Minus size={14} color="#fff" />
+                    </TouchableOpacity>
+                    <Text style={styles.controlValue}>{fontSize}</Text>
+                    <TouchableOpacity 
+                      style={styles.smallButton} 
+                      onPress={() => adjustFontSize(2)}
+                    >
+                      <Plus size={14} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Countdown Control */}
+                <View style={styles.controlGroup}>
+                  <Text style={styles.controlLabel}>Timer</Text>
+                  <View style={styles.controlRow}>
+                    <TouchableOpacity 
+                      style={styles.smallButton} 
+                      onPress={() => adjustCountdown(-1)}
+                    >
+                      <Minus size={14} color="#fff" />
+                    </TouchableOpacity>
+                    <Text style={styles.controlValue}>{countdownTime}s</Text>
+                    <TouchableOpacity 
+                      style={styles.smallButton} 
+                      onPress={() => adjustCountdown(1)}
+                    >
+                      <Plus size={14} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              {/* Record Button */}
+              <TouchableOpacity
+                style={[styles.recordButton, isRecording && styles.recordingButton]}
+                onPress={isRecording ? stopRecording : startCountdown}
+                disabled={!currentScript}
+              >
+                {isRecording ? (
+                  <Square size={28} color="#fff" />
+                ) : (
+                  <Play size={28} color="#fff" />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
+      ) : (
+        <View style={styles.webFallbackContainer}>
+          <View style={styles.webFallbackContent}>
+            <Text style={styles.webFallbackTitle}>Funcionalidade de Câmera Não Disponível</Text>
+            <Text style={styles.webFallbackText}>
+              A gravação de vídeo com câmera só está disponível em dispositivos móveis (iOS/Android).
+            </Text>
+            <Text style={styles.webFallbackText}>
+              Para testar esta funcionalidade, use o Expo Go no seu celular.
+            </Text>
+            {currentScript && (
+              <View style={styles.scriptPreview}>
+                <Text style={styles.scriptPreviewTitle}>Script Selecionado:</Text>
+                <Text style={styles.scriptPreviewContent}>{currentScript.title}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      )}
 
       {!currentScript && (
         <View style={styles.noScriptContainer}>
@@ -396,5 +416,55 @@ const styles = StyleSheet.create({
     color: '#d1d5db',
     fontSize: 14,
     textAlign: 'center',
+  },
+  webFallbackContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    padding: 20,
+  },
+  webFallbackContent: {
+    backgroundColor: '#fff',
+    padding: 32,
+    borderRadius: 12,
+    maxWidth: 400,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  webFallbackTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  webFallbackText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 12,
+    lineHeight: 24,
+  },
+  scriptPreview: {
+    marginTop: 24,
+    padding: 16,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    width: '100%',
+  },
+  scriptPreviewTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  scriptPreviewContent: {
+    fontSize: 16,
+    color: '#1f2937',
   },
 });
