@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Platform } from 'react-native';
 import { Camera, CameraType } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Play, Square, RotateCcw, Minus, Plus, Timer, SkipBack } from 'lucide-react-native';
 import TeleprompterOverlay from '@/components/TeleprompterOverlay';
 import CountdownTimer from '@/components/CountdownTimer';
@@ -117,19 +116,19 @@ export default function RecordingScreen() {
 
   if (!cameraPermission || !microphonePermission) {
     return (
-      <SafeAreaView style={styles.permissionContainer}>
+      <View style={styles.permissionContainer}>
         <Text style={styles.permissionText}>
           Precisamos de permissão para usar a câmera e o microfone
         </Text>
         <TouchableOpacity style={styles.permissionButton} onPress={requestPermissions}>
           <Text style={styles.permissionButtonText}>Conceder Permissão</Text>
         </TouchableOpacity>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {Platform.OS === 'ios' || Platform.OS === 'android' ? (
         <View style={styles.cameraContainer}>
           <Camera 
@@ -275,7 +274,7 @@ export default function RecordingScreen() {
           </Text>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
