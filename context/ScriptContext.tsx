@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface Script {
   id: string;
@@ -8,7 +8,19 @@ interface Script {
   updated_at: string;
 }
 
-// Mock data for demonstration - replace with Supabase integration
+interface ScriptContextType {
+  scripts: Script[];
+  currentScript: Script | null;
+  loading: boolean;
+  createScript: (title: string, content: string) => Promise<void>;
+  updateScript: (id: string, title: string, content: string) => Promise<void>;
+  deleteScript: (id: string) => Promise<void>;
+  setCurrentScript: (script: Script | null) => void;
+}
+
+const ScriptContext = createContext<ScriptContextType | undefined>(undefined);
+
+// Mock data for demonstration
 const mockScripts: Script[] = [
   {
     id: '1',
@@ -58,7 +70,7 @@ Não se esqueçam de compartilhar o resultado nos comentários!`,
   }
 ];
 
-export function useScript() {
+export function ScriptProvider({ children }: { children: ReactNode }) {
   const [scripts, setScripts] = useState<Script[]>([]);
   const [currentScript, setCurrentScript] = useState<Script | null>(null);
   const [loading, setLoading] = useState(false);
@@ -134,7 +146,8 @@ export function useScript() {
       setScripts(prev => prev.filter(script => script.id !== id));
       
       if (currentScript?.id === id) {
-        setCurrentScript(scripts.find(s => s.id !== id) || null);
+        const remainingScripts = scripts.filter(s => s.id !== id);
+        setCurrentScript(remainingScripts.length > 0 ? remainingScripts[0] : null);
       }
       
       // TODO: Replace with Supabase delete
@@ -151,13 +164,25 @@ export function useScript() {
     }
   };
 
-  return {
-    scripts,
-    currentScript,
-    loading,
-    createScript,
-    updateScript,
-    deleteScript,
-    setCurrentScript,
-  };
+  return (
+    <ScriptContext.Provider value={{
+      scripts,
+      currentScript,
+      loading,
+      createScript,
+      updateScript,
+      deleteScript,
+      setCurrentScript,
+    }}>
+      {children}
+    </ScriptContext.Provider>
+  );
+}
+
+export function useScript() {
+  const context = useContext(ScriptContext);
+  if (context === undefined) {
+    throw new Error('useScript must be used within a ScriptProvider');
+  }
+  return context;
 }

@@ -1,17 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { Camera, CameraType } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Play, Square, RotateCcw, Minus, Plus, Timer, SkipBack } from 'lucide-react-native';
-import { useLocalSearchParams } from 'expo-router';
 import TeleprompterOverlay from '@/components/TeleprompterOverlay';
 import CountdownTimer from '@/components/CountdownTimer';
 import { useScript } from '@/hooks/useScript';
 
 export default function RecordingScreen() {
-  const { scriptId } = useLocalSearchParams();
-  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
+  const [microphonePermission, setMicrophonePermission] = useState<boolean | null>(null);
   const [mediaLibraryPermission, requestMediaLibraryPermission] = MediaLibrary.usePermissions();
   const [facing, setFacing] = useState<CameraType>('front');
   const [isRecording, setIsRecording] = useState(false);
@@ -20,19 +19,31 @@ export default function RecordingScreen() {
   const [countdownTime, setCountdownTime] = useState(3);
   const [showCountdown, setShowCountdown] = useState(false);
   const [isRolling, setIsRolling] = useState(false);
-  const cameraRef = useRef<CameraView>(null);
+  const cameraRef = useRef<Camera>(null);
   const teleprompterRef = useRef<any>(null);
   
   const { currentScript } = useScript();
 
   useEffect(() => {
-    if (!cameraPermission) {
-      requestCameraPermission();
-    }
+    requestPermissions();
     if (!mediaLibraryPermission) {
       requestMediaLibraryPermission();
     }
   }, []);
+
+  const requestPermissions = async () => {
+    try {
+      const cameraStatus = await Camera.requestCameraPermissionsAsync();
+      const microphoneStatus = await Camera.requestMicrophonePermissionsAsync();
+      
+      setCameraPermission(cameraStatus.status === 'granted');
+      setMicrophonePermission(microphoneStatus.status === 'granted');
+    } catch (error) {
+      console.error('Error requesting permissions:', error);
+      setCameraPermission(false);
+      setMicrophonePermission(false);
+    }
+  };
 
   const toggleCameraFacing = () => {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
@@ -55,7 +66,8 @@ export default function RecordingScreen() {
       setIsRolling(true);
       
       const video = await cameraRef.current.recordAsync({
-        quality: '1080p',
+        quality: Camera.Constants.VideoQuality['1080p'],
+        maxDuration: 300, // 5 minutes max
       });
 
       if (video && video.uri) {
@@ -99,15 +111,17 @@ export default function RecordingScreen() {
     setIsRolling(false);
   };
 
-  if (!cameraPermission) {
+  if (cameraPermission === null || microphonePermission === null) {
     return <View style={styles.loadingContainer}><Text>Carregando...</Text></View>;
   }
 
-  if (!cameraPermission.granted) {
+  if (!cameraPermission || !microphonePermission) {
     return (
       <SafeAreaView style={styles.permissionContainer}>
-        <Text style={styles.permissionText}>Precisamos de permissão para usar a câmera</Text>
-        <TouchableOpacity style={styles.permissionButton} onPress={requestCameraPermission}>
+        <Text style={styles.permissionText}>
+          Precisamos de permissão para usar a câmera e o microfone
+        </Text>
+        <TouchableOpacity style={styles.permissionButton} onPress={requestPermissions}>
           <Text style={styles.permissionButtonText}>Conceder Permissão</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -117,9 +131,9 @@ export default function RecordingScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.cameraContainer}>
-        <CameraView 
+        <Camera 
           style={styles.camera} 
-          facing={facing}
+          type={facing}
           ref={cameraRef}
         >
           {currentScript && (
@@ -138,7 +152,7 @@ export default function RecordingScreen() {
               onComplete={onCountdownComplete}
             />
           )}
-        </CameraView>
+        </Camera>
 
         {/* Controls Overlay */}
         <View style={styles.controlsOverlay}>
@@ -236,7 +250,9 @@ export default function RecordingScreen() {
       {!currentScript && (
         <View style={styles.noScriptContainer}>
           <Text style={styles.noScriptText}>Nenhum script selecionado</Text>
-          <Text style={styles.noScriptSubText}>Vá para Scripts e selecione um script para começar</Text>
+          <Text style={styles.noScriptSubText}>
+            Vá para a aba Scripts e toque em "Selecionar" em um script para começar
+          </Text>
         </View>
       )}
     </SafeAreaView>
